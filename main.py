@@ -162,7 +162,7 @@ def main():
     N = args.N
     VISUALIZATION = True if args.visualization == 1 else False
     # Raise Exception
-    if ALGO != 1 or ALGO !=2:
+    if ALGO != 1 and ALGO != 2:
         raise Exception("The parameter 'algo' should be 1 or 2.")
     # Run the algorithm for n = 2,...,N
     result = Run_algorithm(N,ALGO)
