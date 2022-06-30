@@ -1,3 +1,4 @@
+import csv
 import argparse
 import matplotlib.pyplot as plt
 
@@ -10,7 +11,7 @@ args = parser.parse_args()
 '''
     find_vertex1: A function to compute a vertex x of a 0/1 polytope that maximizes the ratio c*(x-x')/L1_norm(x-x')
     Input: Dimension n
-           Current pivoting vertex, x_i
+           Current pivoting point, x_i
            Vector c 
     Output: Return a tuple of the vertex index and the ratio where vertex_index refers to a specific vertex (e.g. if vertex_index is 3 (n = 4), then the vertext would be (0,1,1,1))
 '''
@@ -120,8 +121,6 @@ def Run_algorithm(N, algo):
             c = [2**i for i in range(1,n+1)] # c = (2,4,...,2^n)
             result[n] = Algorithm2(n,c)
         return result
-    else:
-        raise Exception("The parameter 'algo' should be 1 or 2.")
 
 '''
     Visualization: Plot the number of iterations (total, halving and augmenting) after running algorithm 1 or 2
@@ -141,15 +140,35 @@ def Visualization(result):
     plt.legend()
     plt.show()
 
+'''
+    Save_result: Save the result in a text file
+    Input: a dictionary, result
+           a number, ALGO (1 or 2)
+           a number, N
+'''
+def Save_result(result,ALGO,N):
+    filename = "Algorithm_{}_N_{}.csv".format(ALGO,N)
+    fielfnames = ['Dimension','Augmenting','Halving','Total']
+    with open(filename,'w') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(fielfnames)
+        for key, iterations in result.items():
+            writer.writerow([key,iterations[2], iterations[3], iterations[1]])
+
 
 def main():
     # INPUT
     ALGO = args.algorithm
     N = args.N
     VISUALIZATION = True if args.visualization == 1 else False
+    # Raise Exception
+    if ALGO != 1 or ALGO !=2:
+        raise Exception("The parameter 'algo' should be 1 or 2.")
     # Run the algorithm for n = 2,...,N
     result = Run_algorithm(N,ALGO)
     print(result)
+    # Save the result
+    Save_result(result,ALGO=ALGO,N=N)
     # Plot the result if VISUALIZATION == True
     if VISUALIZATION:
         Visualization(result)
