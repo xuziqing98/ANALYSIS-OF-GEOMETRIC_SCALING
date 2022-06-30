@@ -6,7 +6,10 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--algorithm', type = int, default = 1, help = '1 or 2')
 parser.add_argument('--N', type = int, default = 2, help = 'should be integer >= 2')
 parser.add_argument('--visualization', type = int, default = 1, help = '0: False and 1: True')
+parser.add_argument('--earlystopping', type = int, default = 0, help = '0: False and 1: True')
 args = parser.parse_args()
+
+EARLY = True if args.earlystopping == 1 else False
 
 '''
     find_vertex1: A function to compute a vertex x of a 0/1 polytope that maximizes the ratio c*(x-x')/L1_norm(x-x')
@@ -19,7 +22,7 @@ args = parser.parse_args()
 def find_vertex1(n,i,c):
     ratio = None
     vertex_index = i
-    for j in range(i+1,n+1): # only consider the vertex x_j where j > i since the ratio would be negative if j < i
+    for j in range(n,i,-1): # only consider the vertex x_j where j > i since the ratio would be negative if j < i
         tmp_sum = 0
         for k in range(i,j):
             tmp_sum += c[n-k-1]
@@ -42,7 +45,7 @@ def find_vertex1(n,i,c):
 
 def Algorithm1(n, c):
     mu = max(c) + 1 # not sure how to choose the value of mu; max(c) is the L-infinite norm of vector c
-    i = 0 # current pivoting point, e.g. x_i is the point in R_n whose last i coordinates are equal to 1 ans whose other coordinates are equal to 0.
+    i = 0 # current pivoting point, e.g. x_i is the point in R_n whose last i coordinates are equal to 1 and whose other coordinates are equal to 0.
     halving = 0 # number of halving steps
     augmenting = 0 # number of augmenting steps
     while mu >= 1/n:
@@ -53,6 +56,8 @@ def Algorithm1(n, c):
         else: # augmenting
             i = next_pivot
             augmenting += 1
+            if EARLY and i == n: # early stoping
+                return [i, halving + augmenting, augmenting, halving]
     return [i, halving + augmenting, augmenting, halving]
 
 '''
@@ -67,7 +72,7 @@ def Algorithm1(n, c):
 
 def find_vertex2(n,i,c,mu):
     vertex_index = None
-    for j in range(i+1,n+1):
+    for j in range(n,i,-1):
         # another way to calculate the ratio
         # tmp_ratio = (2**n)*((2**(1-i)-2**(1-j))/(j-i))
         tmp_sum = 0
@@ -97,6 +102,8 @@ def Algorithm2(n, c):
         if next_pivot: # augmenting step
             i = next_pivot
             augmenting += 1
+            if EARLY and i == n: # early stoping
+                return [i, halving + augmenting, augmenting, halving]
         else: # there is no such vertex, halving step
             mu /= 2
             halving += 1
@@ -147,13 +154,13 @@ def Visualization(result):
            a number, N
 '''
 def Save_result(result,ALGO,N):
-    filename = "Algorithm_{}_N_{}.csv".format(ALGO,N)
-    fielfnames = ['Dimension','Augmenting','Halving','Total']
-    with open(filename,'w') as csvfile:
+    filename = "Algorithm_{}_N_{}_Early_{}.csv".format(ALGO,N,EARLY)
+    fielfnames = ['Dimension','Augmenting','Halving','Total','Early Stopping']
+    with open(filename,'a') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(fielfnames)
         for key, iterations in result.items():
-            writer.writerow([key,iterations[2], iterations[3], iterations[1]])
+            writer.writerow([key,iterations[2], iterations[3], iterations[1],EARLY])
 
 
 def main():
