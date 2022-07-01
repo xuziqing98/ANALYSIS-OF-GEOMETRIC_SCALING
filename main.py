@@ -1,4 +1,5 @@
 import csv
+import math
 import argparse
 import matplotlib.pyplot as plt
 
@@ -7,9 +8,12 @@ parser.add_argument('--algorithm', type = int, default = 1, help = '1 or 2')
 parser.add_argument('--N', type = int, default = 2, help = 'should be integer >= 2')
 parser.add_argument('--visualization', type = int, default = 1, help = '0: False and 1: True')
 parser.add_argument('--earlystopping', type = int, default = 0, help = '0: False and 1: True')
+parser.add_argument('--molecular', type = int, default = 2)
+parser.add_argument('--denominator', type = int, default = 1)
 args = parser.parse_args()
 
 EARLY = True if args.earlystopping == 1 else False
+ALPHA = args.molecular/args.denominator
 
 '''
     find_vertex1: A function to compute a vertex x of a 0/1 polytope that maximizes the ratio c*(x-x')/L1_norm(x-x')
@@ -105,7 +109,7 @@ def Algorithm2(n, c):
             if EARLY and i == n: # early stoping
                 return [i, halving + augmenting, augmenting, halving]
         else: # there is no such vertex, halving step
-            mu /= 2
+            mu = mu/ALPHA
             halving += 1
     return [i, halving + augmenting, augmenting, halving]
 
@@ -125,7 +129,7 @@ def Run_algorithm(N, algo):
         return result
     elif algo == 2:
         for n in range(2,N+1):
-            c = [2**i for i in range(1,n+1)] # c = (2,4,...,2^n)
+            c = [math.ceil(ALPHA)**i for i in range(1,n+1)] # c = (2,4,...,2^n)
             result[n] = Algorithm2(n,c)
         return result
 
@@ -155,12 +159,12 @@ def Visualization(result):
 '''
 def Save_result(result,ALGO,N):
     filename = "Algorithm_{}_N_{}_Early_{}.csv".format(ALGO,N,EARLY)
-    fielfnames = ['Dimension','Augmenting','Halving','Total','Early Stopping']
+    fielfnames = ['Dimension','Augmenting','Halving','Total','Early Stopping','Alpha']
     with open(filename,'a') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(fielfnames)
         for key, iterations in result.items():
-            writer.writerow([key,iterations[2], iterations[3], iterations[1],EARLY])
+            writer.writerow([key,iterations[2], iterations[3], iterations[1],EARLY,ALPHA])
 
 
 def main():
