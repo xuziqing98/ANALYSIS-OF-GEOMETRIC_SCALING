@@ -39,6 +39,7 @@ def find_vertex1(n,i,c):
             vertex_index = j
     return vertex_index, ratio
 
+
 '''
     Algorithm 1: MRA-based Geometric Scaling
     Input: dimension n (in other words, input would be n+1 points of a 0/1 polytope P)
@@ -48,19 +49,19 @@ def find_vertex1(n,i,c):
 '''
 
 def Algorithm1(n, c):
-    mu = max(c) + 1 # not sure how to choose the value of mu; max(c) is the L-infinite norm of vector c
-    i = 0 # current pivoting point, e.g. x_i is the point in R_n whose last i coordinates are equal to 1 and whose other coordinates are equal to 0.
+    mu = max(c) + 1 # mu is a number greater than the L-infinite norm of vector c
+    i = 0 # denotes current pivoting point, x_i
     halving = 0 # number of halving steps
     augmenting = 0 # number of augmenting steps
     while mu >= 1/n:
-        next_pivot, ratio = find_vertex1(n,i,c)
+        next_pivot, ratio = find_vertex1(n,i,c) # feasibility oracle
         if next_pivot == i or ratio < mu: # halving 
             mu = mu/2
             halving += 1
         else: # augmenting
             i = next_pivot
             augmenting += 1
-            if EARLY and i == n: # early stoping
+            if EARLY and i == n: # early stopping
                 return [i, halving + augmenting, augmenting, halving]
     return [i, halving + augmenting, augmenting, halving]
 
@@ -97,8 +98,8 @@ def find_vertex2(n,i,c,mu):
 '''
 
 def Algorithm2(n, c):
-    mu = max(c) + 1 # not sure how to choose the value of mu; max(c) is the L-infinite norm of vector c
-    i = 0 # current pivoting point, e.g. x_i is the point in R_n whose last i coordinates are equal to 1 ans whose other coordinates are equal to 0.
+    mu = max(c) + 1  # mu is a number greater than the L-infinite norm of vector c
+    i = 0 # current pivoting point
     halving = 0 # # number of halving steps
     augmenting = 0 # number of augmenting steps
     while mu >= 1/n:
@@ -125,12 +126,34 @@ def Run_algorithm(N, algo):
     if algo == 1:
         for n in range(2,N+1):
             c = [i for i in range(1,n+1)] # c = (1,2,...,n)
-            result[n] = Algorithm1(n,c)
+            ans = Algorithm1(n,c)
+            ans.append(n)
+            if EARLY:
+                ans.append(math.log((max(c)),ALPHA)+1)
+                ans.append(n+math.log((max(c)),ALPHA)+1)
+            else:
+                ans.append(math.log((n*max(c)),ALPHA)+1)
+                ans.append(n+math.log((n*max(c)),ALPHA)+1)
+            result[n] = ans
         return result
     elif algo == 2:
         for n in range(2,N+1):
             c = [math.ceil(ALPHA)**i for i in range(1,n+1)] # c = (2,4,...,2^n)
-            result[n] = Algorithm2(n,c)
+            ans = Algorithm2(n,c)
+            if 1 < ALPHA <= 4/3:
+                w_a = 1
+            elif 4/3 < ALPHA <= 12/7:
+                w_a = 2
+            elif 12/7 < ALPHA <= 2:
+                w_a = 3
+            ans.append(n/w_a)
+            if EARLY:
+                ans.append(math.log((max(c)),ALPHA)+1)
+                ans.append(n/w_a+math.log(max(c),ALPHA)+1)
+            else:
+                ans.append(math.log((n*max(c)),ALPHA)+1)
+                ans.append(n/w_a+math.log((n*max(c)),ALPHA)+1)
+            result[n] = ans
         return result
 
 '''
@@ -158,13 +181,20 @@ def Visualization(result):
            a number, N
 '''
 def Save_result(result,ALGO,N):
-    filename = "Algorithm_{}_N_{}_Early_{}.csv".format(ALGO,N,EARLY)
-    fielfnames = ['Dimension','Augmenting','Halving','Total','Early Stopping','Alpha']
+    if ALPHA == 2:
+        filename = "Algorithm_{}_N_{}_Early_{}.csv".format(ALGO,N,EARLY)
+    else:
+        filename = "Algorithm_{}_N_{}_Early_{}_APLHA_{}.csv".format(ALGO,N,EARLY,ALPHA)
+    if EARLY:
+        fieldnames = ['Dimension','Augmenting','Halving','Total','n/w_a','log(c)+1','n+log(c)+1','Early Stopping','Alpha']
+    else:
+        fieldnames = ['Dimension','Augmenting','Halving','Total','n/w_a','log(n*c)+1','n+log(n*c)+1','Early Stopping','Alpha']
     with open(filename,'a') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(fielfnames)
+        writer.writerow(fieldnames)
         for key, iterations in result.items():
-            writer.writerow([key,iterations[2], iterations[3], iterations[1],EARLY,ALPHA])
+            writer.writerow([key,iterations[2], iterations[3], iterations[1],iterations[4],iterations[5],iterations[6],EARLY,ALPHA])
+
 
 
 def main():
