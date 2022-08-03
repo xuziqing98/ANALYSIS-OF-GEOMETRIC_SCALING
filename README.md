@@ -1,4 +1,4 @@
-# MENG FINAL Project: GEOMETRIC_SCALING
+# MENG Final Project: The complexity of geometric scaling
 This is the Python implementation of two geometric scaling algorithms: **MRA-based geometric scaling** and **Geometric Scaling via a feasibility test**.
 
 ## Setups
