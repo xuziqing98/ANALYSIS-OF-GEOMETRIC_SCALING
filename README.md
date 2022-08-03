@@ -9,7 +9,10 @@ All code was developed and tested on a MacBook Pro with a 2GHz i5 processor and 
 
 
 ## How to Run
-Here is an example:
+Here are two examples:
 ```bash
-python3 main.py --algorithm 1 --N 20 --visualization 1 --earlystopping 0
+python3 main.py --algorithm 1 --N 20 --visualization 1 --earlystopping 0 
+```
+```bash
+python3 main.py --algorithm 2 --N 20 --visualization 1 --earlystopping 1 --molecular 4 --denominator 3
 ```
