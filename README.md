@@ -1,4 +1,4 @@
-# Analysis of geometric scaling
+# Analysis of Geometric Scaling
 This is the Python implementation of two geometric scaling algorithms: **MRA-based geometric scaling** and **Geometric Scaling via a feasibility test**.
 
 ## Setups
